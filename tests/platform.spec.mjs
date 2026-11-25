@@ -25,7 +25,10 @@ test('Caddy distinguishes SPA navigation, assets and API routes', async ({
 
 test('the browser can retry an unavailable API', async ({ page }) => {
   await page.route('**/api/v1/status', async (route) => {
-    await route.fulfill({ status: 503, json: { status: 'unavailable' } })
+    await route.fulfill({
+      status: 503,
+      json: { code: 14, message: 'database unavailable' },
+    })
   })
   await page.goto('/')
   await expect(page.getByRole('status')).toHaveText('API недоступен')

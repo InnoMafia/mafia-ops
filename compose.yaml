@@ -34,6 +34,7 @@ services:
       context: ${WEB_DIR:-../mafia-web}
     environment:
       API_UPSTREAM: api:8080
+      GRPC_UPSTREAM: api:9090
       NO_PROXY: api,localhost,127.0.0.1
     ports:
       - "127.0.0.1:${MAFIA_PORT:-8787}:8080"
