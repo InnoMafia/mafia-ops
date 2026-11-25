@@ -38,7 +38,7 @@ jobs:
           path: src/mafia-web
           persist-credentials: false
       - name: Verify the web contract
-        run: cmp "$API_DIR/internal/handler/openapi/mafia/platform/v1/platform.openapi.json" "$WEB_DIR/contracts/openapi.json"
+        run: cmp "$API_DIR/gen/openapi/mafia/platform/v1/platform.openapi.json" "$WEB_DIR/contracts/openapi.json"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
