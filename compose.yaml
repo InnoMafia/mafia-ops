@@ -1,0 +1,46 @@
+name: innomafia
+
+services:
+  db:
+    image: postgres:18-alpine@sha256:0115267ab5a509022df9319c77be365cef335adb71556c75f60f5360ee247e71
+    environment:
+      POSTGRES_DB: mafia
+      POSTGRES_USER: mafia
+      POSTGRES_PASSWORD: local-development-only
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "mafia", "-d", "mafia"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: ${API_DIR:-../mafia-api}
+    init: true
+    environment:
+      DATABASE_URL: postgresql://mafia:local-development-only@db:5432/mafia?sslmode=disable
+    depends_on:
+      db:
+        condition: service_healthy
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    stop_grace_period: 15s
+
+  web:
+    build:
+      context: ${WEB_DIR:-../mafia-web}
+    environment:
+      API_UPSTREAM: api:8080
+      GRPC_UPSTREAM: api:9090
+      NO_PROXY: api,localhost,127.0.0.1
+    ports:
+      - "127.0.0.1:${MAFIA_PORT:-8787}:8080"
+    depends_on:
+      api:
+        condition: service_started
+
+volumes:
+  postgres-data:
