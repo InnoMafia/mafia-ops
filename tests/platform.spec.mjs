@@ -37,3 +37,22 @@ test('the browser can retry an unavailable API', async ({ page }) => {
   await page.getByRole('button', { name: 'Проверить снова' }).click()
   await expect(page.getByRole('status')).toHaveText('API доступен')
 })
+
+test('Swagger UI sends requests to the API through Caddy', async ({ page }) => {
+  await page.goto('/api/docs')
+  await expect(page).toHaveURL(/\/api\/docs\/$/)
+  await expect(page).toHaveTitle('InnoMafia API - Swagger UI')
+
+  const operation = page.locator('.opblock').filter({
+    has: page.locator('[data-path="/api/v1/status"]'),
+  })
+  await operation.locator('.opblock-summary-control').click()
+  await operation.getByRole('button', { name: 'Try it out' }).click()
+
+  const statusResponse = page.waitForResponse('**/api/v1/status')
+  await operation.getByRole('button', { name: 'Execute', exact: true }).click()
+  const response = await statusResponse
+  expect(response.status()).toBe(200)
+  expect(await response.json()).toEqual({ status: 'ready' })
+  await expect(operation.getByText('Server response', { exact: true })).toBeVisible()
+})
